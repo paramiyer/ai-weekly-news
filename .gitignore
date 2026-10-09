@@ -1,0 +1,6 @@
+config.env
+state.db
+__pycache__/
+*.pyc
+.venv/
+/tmp/

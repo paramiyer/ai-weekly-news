@@ -1,0 +1,74 @@
+{
+  "_model": "Scored discovery engine for a WEEKLY AI-news brief. Same shape as the hyperlocal Garodia engine, but the geography/proximity layer is replaced by an IMPACT layer (how big a deal the item is for an AI-practitioner audience). Normalized 0-1 layers + normalized weights + hard gates. No per-source logic in code — it all lives here.",
+  "cadence": {"period": "weekly", "run_day": "Monday", "window_days": 7},
+  "signal_types": {
+    "pick":       {"cap": 1, "_desc": "Pick of the Week — the single highest-impact item, opens the brief."},
+    "models":     {"cap": 3},
+    "business":   {"cap": 3},
+    "products":   {"cap": 2},
+    "infra":      {"cap": 2},
+    "policy":     {"cap": 3},
+    "opensource": {"cap": 1}
+  },
+  "sectors": {
+    "pick":       {"signal_type": "pick",       "emoji": "✨", "title": "PICK OF THE WEEK",             "resident_weight": 1.00, "recency_window_h": 168},
+    "models":     {"signal_type": "models",     "emoji": "🧠", "title": "MODELS & RESEARCH",      "resident_weight": 1.00, "recency_window_h": 168},
+    "business":   {"signal_type": "business",   "emoji": "💰", "title": "BUSINESS, FUNDING & M&A", "resident_weight": 0.90, "recency_window_h": 168},
+    "products":   {"signal_type": "products",   "emoji": "🛠️", "title": "PRODUCTS, TOOLS & AGENTS", "resident_weight": 0.85, "recency_window_h": 168},
+    "infra":      {"signal_type": "infra",      "emoji": "🏭", "title": "COMPUTE & INFRA",         "resident_weight": 0.80, "recency_window_h": 168},
+    "policy":     {"signal_type": "policy",     "emoji": "⚖️", "title": "POLICY, SAFETY & REGULATION", "resident_weight": 0.85, "recency_window_h": 168},
+    "opensource": {"signal_type": "opensource", "emoji": "🌐", "title": "OPEN SOURCE / OPEN WEIGHTS", "resident_weight": 0.80, "recency_window_h": 168}
+  },
+  "weights": {
+    "_desc": "Normalized to sum 1 at scoring time. Impact dominates (it replaces geography as the 'does this matter' signal).",
+    "impact": 0.40,
+    "recency": 0.20,
+    "sector_relevance": 0.20,
+    "source_reliability": 0.20
+  },
+  "kernels": {
+    "recency": {"type": "linear_decay", "window_h": 168,
+      "_desc": "1.0 at publish time, linear to 0.0 at the 7-day window edge. Weekly cadence."},
+    "impact": {"type": "provided_0_1",
+      "_desc": "0-1 judged at discovery: 1.0 = field-defining (a frontier model, a landmark deal/regulation), 0.5 = notable, 0.2 = minor. The discovery step sets c['impact']."}
+  },
+  "min_score": 0.45,
+  "max_items": 12,
+  "hard_gates": {
+    "_note": "A candidate scoring 0 on any hard gate is dropped before ranking.",
+    "timestamp_verified": "publication date confirmed from the source, not a search snippet",
+    "within_window": "published inside the 7-day window (recency > 0)",
+    "not_duplicate": "deduped on fingerprint; nothing sent in a prior week repeats"
+  },
+  "sources": {
+    "openai":            {"reliability": 1.00, "note": "official blog"},
+    "anthropic":         {"reliability": 1.00, "note": "official blog"},
+    "google_deepmind":   {"reliability": 1.00, "note": "official blog"},
+    "google_blog":       {"reliability": 1.00, "note": "official blog"},
+    "meta_ai":           {"reliability": 1.00, "note": "official blog"},
+    "mistral":           {"reliability": 1.00, "note": "official blog"},
+    "nvidia":            {"reliability": 1.00, "note": "official newsroom"},
+    "arxiv":             {"reliability": 0.90, "note": "preprint — peer-review pending"},
+    "reuters":           {"reliability": 0.95, "note": "wire"},
+    "bloomberg":         {"reliability": 0.95, "note": "wire; often paywalled -> Codex"},
+    "cnbc":              {"reliability": 0.90, "note": "crawlable"},
+    "the_information":   {"reliability": 0.90, "note": "paywalled -> Codex"},
+    "the_verge":         {"reliability": 0.85, "note": "crawlable"},
+    "techcrunch":        {"reliability": 0.85, "note": "crawlable"},
+    "venturebeat":       {"reliability": 0.82, "note": "crawlable"},
+    "ars_technica":      {"reliability": 0.85, "note": "crawlable"},
+    "techpolicy_press":  {"reliability": 0.85, "note": "policy specialist"},
+    "crunchbase":        {"reliability": 0.85, "note": "funding data"},
+    "import_ai":         {"reliability": 0.80, "note": "newsletter"},
+    "the_batch":         {"reliability": 0.80, "note": "newsletter (DeepLearning.AI)"},
+    "hacker_news":       {"reliability": 0.60, "note": "aggregator — verify the linked source"},
+    "roundup_blog":      {"reliability": 0.50, "note": "secondary roundup — corroborate before trusting figures"},
+    "other":             {"reliability": 0.40, "note": "unlisted source"}
+  },
+  "excluded_sources": {
+    "_note": "Low-signal or unverifiable — do not surface as primary.",
+    "x_twitter": "unverifiable virality; use only to find a primary source",
+    "reddit": "same",
+    "linkedin_posts": "marketing"
+  }
+}
