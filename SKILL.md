@@ -16,12 +16,16 @@ item from just before the window may be carried ONLY if there is a genuinely new
 it; summarise the new development. The scorer's recency kernel hard-gates anything older.
 
 ## 1. Discovery — run ALL Codex sweeps in PARALLEL, hard-capped
-The six sweeps (models, business, products, infra, policy, opensource) reach the paywalled/blocked
-outlets (The Information, Bloomberg, Reuters, etc.). Run them with ONE command:
+The seven sweeps (mena, models, business, products, infra, policy, opensource) reach the
+paywalled/blocked outlets (The Information, Bloomberg, Reuters, The National, etc.). Run them with
+ONE command:
 ```bash
 HERE/run_sweeps.sh 280 {week_start} {week_end}
 ```
-Then read `/tmp/ai-sweep-{models,business,products,infra,policy,opensource}.txt`. **Do NOT run
+Then read `/tmp/ai-sweep-{mena,models,business,products,infra,policy,opensource}.txt`. The **mena**
+sweep is the local hook for this audience (UAE/Saudi/Gulf — G42, HUMAIN, MGX, TII/Falcon, SDAIA,
+sovereign AI & datacenter deals, PIF/Mubadala AI bets, regional regulation); keep it even when the
+global sections are busy. **Do NOT run
 `codex exec` serially or unbounded** — codex ignores perl's SIGALRM, so a hung sweep blocks 20-60
 min; `run_sweeps.sh`+`codex_sweep.sh` use a real SIGKILL watchdog and run in parallel (~4-5 min
 total). A NONE/TIMED_OUT file just means "no candidates this leg" — fall back to WebSearch/WebFetch.
@@ -35,9 +39,11 @@ crawler cannot open it, PROVIDED Codex gave a specific outlet + date. Drop anyth
 cannot pin inside the window.
 
 ## 3. Map each candidate to a sector
-`models` · `business` · `products` · `infra` · `policy` · `opensource` — and exactly ONE `pick`
-(the single highest-impact item of the week; it also opens the brief). Sectors/caps are in
-`taxonomy.json`.
+`mena` · `models` · `business` · `products` · `infra` · `policy` · `opensource` — and exactly ONE
+`pick` (the single highest-impact item of the week; it also opens the brief). `mena` = anything
+centred on the UAE/Saudi/Gulf/Middle East (a regional company, deal, policy, or buildout), even if
+it would also fit a global sector — local relevance wins. Sectors/caps are in `taxonomy.json`; the
+brief renders MENA first, right after the Pick.
 
 ## 4. Set `impact` (0–1) — this replaces geography
 This is the dominant layer. Judge how big a deal the item is for an AI-practitioner audience:

@@ -3,6 +3,7 @@
   "cadence": {"period": "weekly", "run_day": "Monday", "window_days": 7},
   "signal_types": {
     "pick":       {"cap": 1, "_desc": "Pick of the Week — the single highest-impact item, opens the brief."},
+    "mena":       {"cap": 3},
     "models":     {"cap": 3},
     "business":   {"cap": 3},
     "products":   {"cap": 2},
@@ -12,6 +13,7 @@
   },
   "sectors": {
     "pick":       {"signal_type": "pick",       "emoji": "✨", "title": "PICK OF THE WEEK",             "resident_weight": 1.00, "recency_window_h": 168},
+    "mena":       {"signal_type": "mena",       "emoji": "🌍", "title": "MENA — UAE, SAUDI & REGION", "resident_weight": 1.00, "recency_window_h": 168},
     "models":     {"signal_type": "models",     "emoji": "🧠", "title": "MODELS & RESEARCH",      "resident_weight": 1.00, "recency_window_h": 168},
     "business":   {"signal_type": "business",   "emoji": "💰", "title": "BUSINESS, FUNDING & M&A", "resident_weight": 0.90, "recency_window_h": 168},
     "products":   {"signal_type": "products",   "emoji": "🛠️", "title": "PRODUCTS, TOOLS & AGENTS", "resident_weight": 0.85, "recency_window_h": 168},
@@ -61,6 +63,13 @@
     "crunchbase":        {"reliability": 0.85, "note": "funding data"},
     "import_ai":         {"reliability": 0.80, "note": "newsletter"},
     "the_batch":         {"reliability": 0.80, "note": "newsletter (DeepLearning.AI)"},
+    "the_national":      {"reliability": 0.88, "note": "UAE — The National"},
+    "arab_news":         {"reliability": 0.85, "note": "Saudi — Arab News"},
+    "gulf_news":         {"reliability": 0.83, "note": "UAE — Gulf News"},
+    "khaleej_times":     {"reliability": 0.82, "note": "UAE — Khaleej Times"},
+    "zawya":             {"reliability": 0.82, "note": "MENA business — Zawya/Refinitiv"},
+    "wamda":             {"reliability": 0.80, "note": "MENA startups — Wamda"},
+    "magnitt":           {"reliability": 0.80, "note": "MENA venture data — MAGNiTT"},
     "hacker_news":       {"reliability": 0.60, "note": "aggregator — verify the linked source"},
     "roundup_blog":      {"reliability": 0.50, "note": "secondary roundup — corroborate before trusting figures"},
     "other":             {"reliability": 0.40, "note": "unlisted source"}

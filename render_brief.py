@@ -15,7 +15,7 @@ import scoring
 from scoring import TAX
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SECTION_ORDER = ["models", "business", "products", "infra", "policy", "opensource"]
+SECTION_ORDER = ["mena", "models", "business", "products", "infra", "policy", "opensource"]
 MSG = "/tmp/ai-message.txt"
 SEL = "/tmp/ai-selected.json"
 

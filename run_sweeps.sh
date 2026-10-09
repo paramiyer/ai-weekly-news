@@ -27,9 +27,11 @@ $SW "$CAP" "Search the web. List AI POLICY, REGULATION and SAFETY news dated ${W
 
 $SW "$CAP" "Search the web. List notable OPEN-SOURCE / OPEN-WEIGHT AI releases dated ${W}: open models and major open tooling (Llama, Mistral, DeepSeek, Qwen, Gemma, etc.) and their benchmarks. For each: headline, 1-line, who, EXACT date, outlet, URL. Only items dated ${W}. If none, say NONE." > /tmp/ai-sweep-opensource.txt 2>&1 &
 
+$SW "$CAP" "Search the web. List the most important AI news FROM THE MENA REGION (UAE, Saudi Arabia, Qatar, and the wider Gulf/Middle East) dated ${W}. Cover: UAE/Saudi AI companies and labs (G42, Core42, Presight, MGX, HUMAIN, TII/Falcon, SDAIA, Lenovo-Alat), sovereign AI & datacenter buildouts, Nvidia/AMD/OpenAI/Anthropic deals in the Gulf, PIF/Mubadala/ADIA AI investments, national AI strategy/regulation, and major enterprise AI adoption in the region. For each: headline, 1-line, who, EXACT date, outlet, URL. Prefer The National, Arab News, Gulf News, Khaleej Times, Zawya, Wamda, MAGNiTT, Reuters. Only items dated ${W}. If none, say NONE." > /tmp/ai-sweep-mena.txt 2>&1 &
+
 wait
-echo "[run_sweeps] done (window ${WS}..${WE}, cap ${CAP}s each). Files: /tmp/ai-sweep-{models,business,products,infra,policy,opensource}.txt"
-for f in models business products infra policy opensource; do
+echo "[run_sweeps] done (window ${WS}..${WE}, cap ${CAP}s each). Files: /tmp/ai-sweep-{mena,models,business,products,infra,policy,opensource}.txt"
+for f in mena models business products infra policy opensource; do
   n=$(wc -l < "/tmp/ai-sweep-$f.txt" 2>/dev/null | tr -d ' '); to=""
   grep -q TIMED_OUT "/tmp/ai-sweep-$f.txt" 2>/dev/null && to=" [TIMED_OUT]"
   echo "  ai-sweep-$f.txt: ${n:-0} lines$to"
