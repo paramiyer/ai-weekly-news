@@ -12,6 +12,20 @@ WS=$(date -v-7d +%Y-%m-%d 2>/dev/null || date -d '7 days ago' +%Y-%m-%d)
 DEST="${GROUP_JID:-$SEND_JID}" ; [ -n "$SEND_JID" ] && [ -z "$GROUP_JID" ] && DEST="$SEND_JID"
 log(){ echo "[$(TZ=$TZ_SEND date '+%F %H:%M:%S') $TZ_SEND] $*" >>"$LOG"; }
 
+# --dry-run [week_start week_end]: compose + print ONLY. No send, no DB write, no hold, no caffeinate.
+# Dedup against state.db is still applied (read-only). Defaults to the UPCOMING Monday's window so a
+# Sunday preview matches what will actually post. Example: ./run_and_send.sh --dry-run
+if [ "${1:-}" = "--dry-run" ]; then
+  # next Monday (0 if today is Monday) -> that Monday is the window end
+  DOW=$(date +%u); ADD=$(( (8 - DOW) % 7 ))
+  DWE="${2:-$(date -v+${ADD}d +%Y-%m-%d 2>/dev/null || date -d "+${ADD} days" +%Y-%m-%d)}"
+  DWS="${3:-$(date -v-7d -f %Y-%m-%d "$DWE" +%Y-%m-%d 2>/dev/null || date -d "$DWE -7 days" +%Y-%m-%d)}"
+  echo "DRY RUN — window $DWS -> $DWE, target would be $DEST. NO send, NO db write."
+  exec /opt/homebrew/bin/claude -p \
+    "DRY RUN. Read and follow $SKILL for the window $DWS to $DWE. Apply real dedup READ-ONLY against state.db. render_brief.py writes $MSG. Do NOT send and do NOT run record.py (no db writes). Print the composed message, then a 1-line note on what was deduped, and end with BOT_RESULT: COMPOSED." \
+    --allowedTools "Bash Read WebSearch WebFetch" --permission-mode dontAsk
+fi
+
 caffeinate -i -s -w $$ & disown                        # strong assertion: survive a closed lid
 
 # idempotency: already sent this week?
