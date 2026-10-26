@@ -38,6 +38,12 @@ if [ "$(curl -s -m3 -o /dev/null -w '%{http_code}' "$BRIDGE_URL" -X POST -H 'Con
   for i in $(seq 1 20); do sleep 1; [ "$(curl -s -m3 -o /dev/null -w '%{http_code}' "$BRIDGE_URL" -X POST -H 'Content-Type: application/json' -d '{}' 2>/dev/null)" != "000" ] && break; done
 fi
 
+# 0) PRE-COMPOSE hold to ~30 min before the send IN TZ_SEND, so content is fresh regardless of how
+#    early launchd/pmset woke us, and regardless of the host clock's timezone. Returns immediately
+#    if already past. (PRE_H:PRE_M = send time minus 30 min; for 08:00 that's 07:30.)
+PRE_H=$SEND_HOUR; PRE_M=$((10#$SEND_MIN - 30)); [ "$PRE_M" -lt 0 ] && { PRE_M=$((PRE_M+60)); PRE_H=$((10#$SEND_HOUR-1)); }
+"$HERE/hold_until_tz.sh" "$TZ_SEND" "$PRE_H" "$PRE_M" 21600 >>"$LOG" 2>&1
+
 # 1) FRESH compose (writes MSG + SEL). Retry once after the usage-limit reset if we hit it.
 _compose(){
   STAMP=$(date +%s); rm -f "$MSG"
@@ -78,7 +84,10 @@ fi
 log "fresh compose OK ($(stat -f %Sm "$MSG" 2>/dev/null))."
 
 # 3) HOLD until the configured send time (cap 240 min covers an early wake)
-"$HERE/wait_until.sh" "$SEND_HOUR" "$SEND_MIN" 14400 >>"$LOG" 2>&1
+# TIMEZONE-PROOF (2026-10-26): hold to SEND_HOUR:SEND_MIN in TZ_SEND (Asia/Dubai) as an absolute
+# epoch, NOT machine-local — so the post lands at 08:00 Dubai whether the Mac is on Dubai or IST.
+# (The old wait_until.sh held to machine-local 08:00, which on an IST laptop fired at 06:30 Dubai.)
+"$HERE/hold_until_tz.sh" "$TZ_SEND" "$SEND_HOUR" "$SEND_MIN" 21600 >>"$LOG" 2>&1
 
 # 4) SEND + record
 BODY=$(python3 -c "import json;print(json.dumps({'recipient':'$DEST','message':open('$MSG').read()}))")
