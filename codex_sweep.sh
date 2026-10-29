@@ -1,25 +1,32 @@
 #!/bin/bash
-# codex_sweep.sh [timeout_s] "prompt…"  — run ONE codex web-search sweep with a HARD wall-clock
-# cap, because codex sweeps have no native timeout and occasionally hang 20-60 min, which used to
-# push the 7:00 IST send to 08:30-09:12 and gut blocked-outlet coverage (seen Sep-Oct 2026).
+# codex_sweep.sh [timeout_s] "prompt…"  — run ONE codex web-search sweep with a HARD wall-clock cap.
 #
-# NOTE: `perl -e 'alarm'` does NOT kill codex (Node resets SIGALRM) — verified it ran to 174s under
-# a 150s alarm. So this uses a real watchdog: SIGTERM at the cap, SIGKILL 5s later, kill the whole
-# process group so codex's children die too.
-#
-# Exit 0 on a clean finish OR a timeout (timeout = "no result this leg, move on"); the sweep's
-# stdout (full or partial) is printed either way. A timed-out sweep prints a TIMED_OUT marker.
+# Kills the WHOLE process tree by PID on timeout (recursive, depth-first), NOT via a process-group
+# signal. The old version used `set -m` + `kill -TERM -$pid` (negative pid = process group), but
+# job control does NOT engage when this runs non-interactively (no controlling terminal) — e.g.
+# under the scheduled `claude -p` compose agent. There the group kill silently failed and sweeps
+# ran ~55 min against a 240s cap (observed 2026-10-29: 5 of 6 Garodia sweeps hung, brief went thin
+# + 63-min compose). It "worked" only when tested by hand because an interactive shell has job
+# control. pgrep/kill walk the real tree (codex node wrapper -> native codex binary) reliably.
 T="${1:-240}"; shift
 cd /tmp || exit 1
-set -m                                   # own process group for the child
+
+_killtree() {           # kill $1 and all descendants, leaves first (so children can't reparent)
+  local p
+  for p in $(pgrep -P "$1" 2>/dev/null); do _killtree "$p"; done
+  kill -KILL "$1" 2>/dev/null
+}
+
+TO=$(mktemp 2>/dev/null || echo "/tmp/codexto.$$")
 codex exec --skip-git-repo-check "$@" &
 pid=$!
-( sleep "$T"; kill -TERM -"$pid" 2>/dev/null; sleep 5; kill -KILL -"$pid" 2>/dev/null ) &
+( sleep "$T"; _killtree "$pid"; echo 1 > "$TO" ) &
 watch=$!
-wait "$pid" 2>/dev/null; rc=$?
+wait "$pid" 2>/dev/null
 kill "$watch" 2>/dev/null; wait "$watch" 2>/dev/null
-# rc 143 = SIGTERM, 137 = SIGKILL -> we hit the cap
-if [ "$rc" = 143 ] || [ "$rc" = 137 ]; then
-  echo "[codex_sweep] TIMED_OUT after ${T}s — sweep skipped, continue with other legs." >&2
+
+if [ -s "$TO" ]; then
+  echo "[codex_sweep] TIMED_OUT after ${T}s — sweep killed, continue with other legs." >&2
 fi
+rm -f "$TO"
 exit 0
